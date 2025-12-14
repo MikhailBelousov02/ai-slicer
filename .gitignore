@@ -20,16 +20,12 @@ venv.bak/
 !.vscode/extensions.json
 *.code-workspace
 
-# Dataset (не загружаем большие файлы)
+# Dataset - не загружаем большие файлы
 dataset/models/*.stl
-dataset/orientations/**/*.stl
-dataset/gcode_results/**/*.gcode
-dataset/**/*.png
-dataset/**/*.jpg
-
-# Исключения (сохраняем только маленькие примеры)
+# ИСКЛЮЧЕНИЯ (загружаем маленькие примеры)
 !dataset/models/example.stl
-!dataset/orientations/**/preview_small.png
+!dataset/models/simple_cube.stl
+!dataset/models/minimal_example.stl
 
 # Временные файлы
 *.log
