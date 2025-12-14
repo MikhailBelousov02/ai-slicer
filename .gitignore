@@ -48,3 +48,15 @@ Thumbs.db
 
 # Virtual environment
 myenv/
+
+# G-code files (very large)
+*.gcode
+*.gco
+*.gc
+
+# STL files in orientations (duplicates)
+dataset/orientations/**/*.stl
+
+# Но сохраняем примеры в models
+!dataset/models/simple_cube.stl
+!dataset/models/minimal_example.stl
