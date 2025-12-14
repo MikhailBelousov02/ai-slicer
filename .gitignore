@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+*.pyc
+.pytest_cache/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Dataset (не загружаем большие файлы)
+dataset/models/*.stl
+dataset/orientations/**/*.stl
+dataset/gcode_results/**/*.gcode
+dataset/**/*.png
+dataset/**/*.jpg
+
+# Исключения (сохраняем только маленькие примеры)
+!dataset/models/example.stl
+!dataset/orientations/**/preview_small.png
+
+# Временные файлы
+*.log
+.cache/
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+
+# Virtual environment
+myenv/
