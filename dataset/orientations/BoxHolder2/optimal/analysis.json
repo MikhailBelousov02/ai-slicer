@@ -1,0 +1,32 @@
+{
+  "automatic_analysis": {
+    "bounding_box_mm": {
+      "width": 7.0,
+      "depth": 39.999996185302734,
+      "height": 10.0
+    },
+    "volume_cm3": 2.3899994391600594,
+    "surface_area_cm2": 21.539997127056203,
+    "center_of_mass_mm": [
+      0.07531379940917123,
+      -0.08786619568747595,
+      4.771966534477408
+    ],
+    "status": "analyzed",
+    "analysis_date": "2025-12-15T14:45:28.134307"
+  },
+  "support_analysis": {
+    "requires_supports": false,
+    "support_volume_estimate_ml": 0.0,
+    "note": "Автоматически проанализировано"
+  },
+  "contact_area_mm2": 279.9999351501501,
+  "user_assessment": {
+    "quality_score": 8,
+    "printability_score": 8,
+    "notes": "Оцените после анализа: 1-10",
+    "issues_found": []
+  },
+  "analysis_status": "auto_analyzed",
+  "last_updated": "2025-12-15T14:45:28.135307"
+}

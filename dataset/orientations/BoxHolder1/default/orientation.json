@@ -1,0 +1,13 @@
+{
+  "model_name": "BoxHolder1",
+  "orientation_name": "default",
+  "rotation_angles": {
+    "x_degrees": 0.0,
+    "y_degrees": 0.0,
+    "z_degrees": 0.0
+  },
+  "description": "Оригинальная ориентация",
+  "created_date": "2025-12-15T13:51:49.145581",
+  "author": "structure_creator",
+  "notes": "Заполните после подготовки модели"
+}
