@@ -1,0 +1,31 @@
+{
+  "automatic_analysis": {
+    "bounding_box_mm": {
+      "width": 0.0,
+      "depth": 0.0,
+      "height": 0.0,
+      "note": "Заполните после анализа модели"
+    },
+    "volume_cm3": 0.0,
+    "surface_area_cm2": 0.0,
+    "center_of_mass_mm": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "status": "pending_analysis"
+  },
+  "support_analysis": {
+    "requires_supports": false,
+    "support_volume_estimate_ml": 0.0,
+    "note": "Определите нужны ли поддержки для этой ориентации"
+  },
+  "contact_area_mm2": 0.0,
+  "user_assessment": {
+    "quality_score": 0,
+    "notes": "Оцените после анализа: 1-10",
+    "issues_found": []
+  },
+  "analysis_status": "not_analyzed",
+  "last_updated": "2025-12-17T15:35:42.624737"
+}

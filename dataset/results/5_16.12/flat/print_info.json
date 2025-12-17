@@ -1,0 +1,45 @@
+{
+  "model_name": "5_16.12",
+  "orientation_name": "flat",
+  "rotation_info": {
+    "angles_degrees": {
+      "x": 90.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "description": "flat \u043e\u0440\u0438\u0435\u043d\u0442\u0430\u0446\u0438\u044f",
+    "updated_date": "2025-12-17T18:58:57.440958"
+  },
+  "geometry_analysis": {
+    "bounding_box_mm": {
+      "width": 0.0,
+      "depth": 0.0,
+      "height": 0.0,
+      "note": "\u0417\u0430\u043f\u043e\u043b\u043d\u0438\u0442\u044c \u043f\u043e\u0441\u043b\u0435 \u0430\u043d\u0430\u043b\u0438\u0437\u0430 STL"
+    },
+    "volume_cm3": 0.0,
+    "surface_area_cm2": 0.0,
+    "analysis_date": "",
+    "status": "placeholder_stl",
+    "note": "STL \u0444\u0430\u0439\u043b - placeholder, \u0433\u0435\u043e\u043c\u0435\u0442\u0440\u0438\u044f \u043d\u0435 \u0430\u043d\u0430\u043b\u0438\u0437\u0438\u0440\u043e\u0432\u0430\u043d\u0430"
+  },
+  "print_session": {
+    "print_date": "",
+    "printer_used": "Ender-3 V2",
+    "operator": "",
+    "status": "analyzed",
+    "last_updated": "2025-12-17T22:08:21.087821"
+  },
+  "estimated_values": {
+    "time_minutes": 175,
+    "material_g": 26.57,
+    "layer_count": 82,
+    "filament_length_m": 8.84,
+    "analysis_date": "2025-12-17T21:15:28.608377",
+    "source": "gcode_analysis"
+  },
+  "status": "not_printed",
+  "created_date": "2025-12-17T18:51:55.750394",
+  "last_updated": "2025-12-17T22:08:21.087821",
+  "analysis_status": "no_changes"
+}

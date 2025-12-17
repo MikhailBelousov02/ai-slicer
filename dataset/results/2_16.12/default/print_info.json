@@ -1,0 +1,43 @@
+{
+  "model_name": "2_16.12",
+  "orientation_name": "default",
+  "rotation_info": {
+    "angles_degrees": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "description": "default \u043e\u0440\u0438\u0435\u043d\u0442\u0430\u0446\u0438\u044f",
+    "updated_date": "2025-12-17T18:58:56.799476"
+  },
+  "geometry_analysis": {
+    "bounding_box_mm": {
+      "width": 50.0,
+      "depth": 58.0,
+      "height": 113.0
+    },
+    "volume_cm3": 58.7453544842171,
+    "surface_area_cm2": 248.56057562578562,
+    "analysis_date": "2025-12-17T21:15:27.479247",
+    "status": "analyzed"
+  },
+  "print_session": {
+    "print_date": "",
+    "printer_used": "Ender-3 V2",
+    "operator": "",
+    "status": "analyzed",
+    "last_updated": "2025-12-17T22:08:19.995662"
+  },
+  "estimated_values": {
+    "time_minutes": 845,
+    "material_g": 111.52,
+    "layer_count": 564,
+    "filament_length_m": 37.09,
+    "analysis_date": "2025-12-17T21:15:27.629856",
+    "source": "gcode_analysis"
+  },
+  "status": "not_printed",
+  "created_date": "2025-12-17T18:51:55.676394",
+  "last_updated": "2025-12-17T22:08:19.995662",
+  "analysis_status": "no_changes"
+}

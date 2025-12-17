@@ -1,0 +1,43 @@
+{
+  "model_name": "BoxHolder2",
+  "orientation_name": "default",
+  "rotation_info": {
+    "angles_degrees": {
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    "description": "default \u043e\u0440\u0438\u0435\u043d\u0442\u0430\u0446\u0438\u044f",
+    "updated_date": "2025-12-17T18:58:57.697706"
+  },
+  "geometry_analysis": {
+    "bounding_box_mm": {
+      "width": 10.0,
+      "depth": 7.0,
+      "height": 40.0
+    },
+    "volume_cm3": 2.39,
+    "surface_area_cm2": 21.54,
+    "analysis_date": "2025-12-17T21:15:28.952093",
+    "status": "analyzed"
+  },
+  "print_session": {
+    "print_date": "",
+    "printer_used": "Ender-3 V2",
+    "operator": "",
+    "status": "analyzed",
+    "last_updated": "2025-12-17T22:08:21.415829"
+  },
+  "estimated_values": {
+    "time_minutes": 38,
+    "material_g": 3.04,
+    "layer_count": 199,
+    "filament_length_m": 1.01,
+    "analysis_date": "2025-12-17T21:15:28.981616",
+    "source": "gcode_analysis"
+  },
+  "status": "not_printed",
+  "created_date": "2025-12-17T18:51:55.781395",
+  "last_updated": "2025-12-17T22:08:21.415829",
+  "analysis_status": "no_changes"
+}
