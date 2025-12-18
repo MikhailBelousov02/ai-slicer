@@ -3,8 +3,8 @@
   "orientation_name": "optimal",
   "rotation_info": {
     "angles_degrees": {
-      "x": 45.0,
-      "y": 30.0,
+      "x": 0.0,
+      "y": 0.0,
       "z": 0.0
     },
     "description": "optimal \u043e\u0440\u0438\u0435\u043d\u0442\u0430\u0446\u0438\u044f",
@@ -18,7 +18,7 @@
     },
     "volume_cm3": 2.39,
     "surface_area_cm2": 21.54,
-    "analysis_date": "2025-12-17T21:15:29.091418",
+    "analysis_date": "2025-12-19T00:42:42.305740",
     "status": "analyzed"
   },
   "print_session": {
@@ -26,18 +26,23 @@
     "printer_used": "Ender-3 V2",
     "operator": "",
     "status": "analyzed",
-    "last_updated": "2025-12-17T22:08:21.515549"
+    "last_updated": "2025-12-19T00:42:42.312947"
   },
   "estimated_values": {
     "time_minutes": 38,
     "material_g": 3.04,
     "layer_count": 199,
     "filament_length_m": 1.01,
-    "analysis_date": "2025-12-17T21:15:29.128199",
-    "source": "gcode_analysis"
+    "analysis_date": "2025-12-19T00:39:21.150053",
+    "source": "gcode_analysis",
+    "notes": [
+      "\u0412\u0440\u0435\u043c\u044f \u0438\u0437 TIME:\u0441\u0435\u043a\u0443\u043d\u0434\u044b",
+      "\u041c\u0430\u0442\u0435\u0440\u0438\u0430\u043b \u0438\u0437 Filament used",
+      "\u0421\u043b\u043e\u0438 \u0438\u0437 LAYER_COUNT"
+    ]
   },
   "status": "not_printed",
   "created_date": "2025-12-17T18:51:55.789401",
-  "last_updated": "2025-12-17T22:08:21.515549",
-  "analysis_status": "no_changes"
+  "last_updated": "2025-12-19T00:42:42.312947",
+  "analysis_status": "completed"
 }

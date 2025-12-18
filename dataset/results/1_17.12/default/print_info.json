@@ -26,7 +26,7 @@
     "printer_used": "Ender-3 V2",
     "operator": "",
     "status": "analyzed",
-    "last_updated": "2025-12-17T22:08:19.596799"
+    "last_updated": "2025-12-19T00:42:37.376828"
   },
   "estimated_values": {
     "time_minutes": 371,
@@ -38,6 +38,6 @@
   },
   "status": "not_printed",
   "created_date": "2025-12-17T21:21:06.991473",
-  "last_updated": "2025-12-17T22:08:19.596799",
-  "analysis_status": "completed"
+  "last_updated": "2025-12-19T00:42:37.376828",
+  "analysis_status": "no_changes"
 }

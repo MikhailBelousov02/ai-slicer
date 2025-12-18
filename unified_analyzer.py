@@ -510,8 +510,7 @@ def main():
         print(f"   • geometry_analysis - размеры и объем")
         print(f"   • estimated_values - оценки печати")
         
-
-
+        # Показываем пример обновленного файла
 
 if __name__ == "__main__":
     main()
