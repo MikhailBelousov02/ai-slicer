@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyd
+*.pyo
+*.so
+*.dll
+
+# Virtual Environment
+venv/
+.env/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data and models
+models_fixed/
+models_improved/
+models_auto/
+models_improved_v2/
+*.pkl
+*.npy
+*.npz
+
+# Dataset files (too large for GitHub)
+training_dataset.json
+simple_3d_print_data.csv
+best_orientations.csv
+
+# Output files
+orientation_recommendation_*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
