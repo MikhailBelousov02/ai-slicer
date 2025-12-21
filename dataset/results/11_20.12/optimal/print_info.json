@@ -33,6 +33,7 @@
     "material_g": 40.66,
     "layer_count": 84,
     "filament_length_m": 13.52,
+    "printing_rate": 10,
     "analysis_date": "2025-12-20T23:24:10.611582",
     "source": "gcode_analysis"
   },
