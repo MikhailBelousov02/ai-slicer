@@ -1,4 +1,0 @@
-model,orientation,rotation_x,rotation_y,rotation_z,requires_supports,max_overhang_angle,stability_risk
-complex_cylinder,horizontal,90,0,0,True,90.0,low
-simple_cube,0_0_0,0,0,0,True,90.0,low
-simple_cube,45_0_0,45,0,0,True,90.0,low

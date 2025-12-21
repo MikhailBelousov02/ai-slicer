@@ -1,5 +1,5 @@
 """
-UNIFIED_ANALYZER_FIXED.py - Исправленный анализатор с обработкой ошибок
+UNIFIED_ANALYZER_FIXED.py - Анализатор с обработкой ошибок
 """
 
 import trimesh
@@ -18,19 +18,19 @@ class UnifiedAnalyzerFixed:
         print("="*70)
         print("UNIFIED DATASET ANALYZER - FIXED VERSION")
         print("="*70)
-        print(f"📁 Dataset path: {self.dataset_path}")
-        print(f"📂 Results path: {self.results_path}")
+        print(f"Dataset path: {self.dataset_path}")
+        print(f"Results path: {self.results_path}")
         print("="*70)
     
     def analyze_stl_geometry_fixed(self, stl_path: Path):
         """Анализирует геометрию STL файла с улучшенной обработкой ошибок"""
-        print(f"   📐 Анализ геометрии...")
+        print(f"   Анализ геометрии...")
         
         try:
             # Проверяем размер файла
             file_size = stl_path.stat().st_size
             if file_size < 100:
-                print(f"     ⚠️  Файл слишком мал ({file_size} байт), возможно placeholder")
+                print(f"     Файл слишком мал ({file_size} байт), возможно placeholder")
                 return None
             
             # Пробуем разные способы загрузки
@@ -38,7 +38,7 @@ class UnifiedAnalyzerFixed:
             try:
                 mesh = trimesh.load(str(stl_path))
             except Exception as load_error:
-                print(f"     ⚠️  Ошибка загрузки trimesh: {str(load_error)[:100]}")
+                print(f"     Ошибка загрузки trimesh: {str(load_error)[:100]}")
                 # Пробуем альтернативный метод
                 try:
                     mesh = trimesh.load_mesh(str(stl_path))
@@ -46,18 +46,18 @@ class UnifiedAnalyzerFixed:
                     pass
             
             if mesh is None:
-                print(f"     ❌ Не удалось загрузить STL файл")
+                print(f"     Не удалось загрузить STL файл")
                 return None
             
             # Проверяем, что mesh имеет нужные атрибуты
             if not hasattr(mesh, 'bounds') or mesh.bounds is None:
-                print(f"     ❌ Нет данных bounds в mesh")
+                print(f"     Нет данных bounds в mesh")
                 return None
             
             # Получаем границы модели
             bounds = mesh.bounds
             if bounds is None or len(bounds) < 2:
-                print(f"     ❌ Неверный формат bounds")
+                print(f"     Неверный формат bounds")
                 return None
             
             dimensions = bounds[1] - bounds[0]
@@ -78,16 +78,16 @@ class UnifiedAnalyzerFixed:
                 "status": "analyzed"
             }
             
-            print(f"     ✅ Размеры: {dimensions[0]:.1f}×{dimensions[1]:.1f}×{dimensions[2]:.1f} мм")
+            print(f"     Размеры: {dimensions[0]:.1f}×{dimensions[1]:.1f}×{dimensions[2]:.1f} мм")
             if volume_mm3 > 0:
-                print(f"     ✅ Объем: {volume_mm3/1000:.1f} см³")
+                print(f"     Объем: {volume_mm3/1000:.1f} см³")
             if area_mm2 > 0:
-                print(f"     ✅ Площадь: {area_mm2/100:.1f} см²")
+                print(f"     Площадь: {area_mm2/100:.1f} см²")
             
             return geometry_data
             
         except Exception as e:
-            print(f"     ❌ Критическая ошибка: {type(e).__name__}: {str(e)[:100]}")
+            print(f"     Критическая ошибка: {type(e).__name__}: {str(e)[:100]}")
             return None
     
     def extract_angles_from_path(self, folder_path: Path):
@@ -117,16 +117,16 @@ class UnifiedAnalyzerFixed:
     
     def parse_gcode_file_fixed(self, gcode_path: Path):
         """Парсит G-code файл с улучшенной обработкой"""
-        print(f"   ⚙️  Анализ G-code...")
+        print(f"   Анализ G-code...")
         
         if not gcode_path.exists():
-            print(f"     ⚠️  Файл не найден")
+            print(f"     Файл не найден")
             return self.get_empty_gcode_data()
         
         try:
             file_size = gcode_path.stat().st_size
             if file_size < 50:
-                print(f"     ⚠️  Файл слишком мал ({file_size} байт)")
+                print(f"     Файл слишком мал ({file_size} байт)")
                 return self.get_empty_gcode_data()
             
             with open(gcode_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -134,23 +134,23 @@ class UnifiedAnalyzerFixed:
             
             # Проверяем, что это похоже на G-code
             if not any(keyword in content for keyword in ['G1', 'G0', 'G28', 'M104', 'M140']):
-                print(f"     ⚠️  Файл не похож на G-code")
+                print(f"     Файл не похож на G-code")
                 return self.get_empty_gcode_data()
             
             estimations = self.extract_gcode_estimations(content)
             
             if estimations['success']:
-                print(f"     ✅ Время: {estimations['time_minutes']:.0f} мин")
-                print(f"     ✅ Материал: {estimations['material_g']:.1f} г")
+                print(f"     Время: {estimations['time_minutes']:.0f} мин")
+                print(f"     Материал: {estimations['material_g']:.1f} г")
                 if estimations['layer_count'] > 0:
-                    print(f"     ✅ Слоев: {estimations['layer_count']}")
+                    print(f"     Слоев: {estimations['layer_count']}")
             else:
-                print(f"     ⚠️  Не найдены оценки в G-code")
+                print(f"     Не найдены оценки в G-code")
             
             return estimations
             
         except Exception as e:
-            print(f"     ❌ Ошибка чтения G-code: {str(e)[:100]}")
+            print(f"     Ошибка чтения G-code: {str(e)[:100]}")
             return self.get_empty_gcode_data()
     
     def extract_gcode_estimations(self, content: str):
@@ -238,7 +238,7 @@ class UnifiedAnalyzerFixed:
     
     def process_orientation_fixed(self, orient_dir: Path, model_name: str, orient_name: str):
         """Обрабатывает одну ориентацию с улучшенной обработкой ошибок"""
-        print(f"\n🔍 {model_name}/{orient_name}")
+        print(f"\n{model_name}/{orient_name}")
         
         # Пути к файлам
         stl_path = orient_dir / "model.stl"
@@ -252,7 +252,7 @@ class UnifiedAnalyzerFixed:
             'json': print_info_path.exists()
         }
         
-        print(f"   📁 Файлы: ", end="")
+        print(f"   Файлы: ", end="")
         file_status = []
         if files_exist['stl']:
             stl_size = stl_path.stat().st_size
@@ -274,7 +274,7 @@ class UnifiedAnalyzerFixed:
         print(", ".join(file_status))
         
         if not files_exist['json']:
-            print(f"   ❌ print_info.json не найден")
+            print(f"   print_info.json не найден")
             return False
         
         # Загружаем существующий print_info.json
@@ -282,7 +282,7 @@ class UnifiedAnalyzerFixed:
             with open(print_info_path, 'r', encoding='utf-8') as f:
                 print_info = json.load(f)
         except Exception as e:
-            print(f"   ❌ Ошибка чтения JSON: {e}")
+            print(f"   Ошибка чтения JSON: {e}")
             return False
         
         # 1. Извлекаем углы поворота
@@ -360,13 +360,13 @@ class UnifiedAnalyzerFixed:
                 json.dump(print_info, f, indent=2)
             
             if updated:
-                print(f"   ✅ print_info.json обновлен")
+                print(f"   print_info.json обновлен")
             else:
-                print(f"   ℹ️  print_info.json уже актуален")
+                print(f"   print_info.json уже актуален")
             return updated
             
         except Exception as e:
-            print(f"   ❌ Ошибка обновления JSON: {type(e).__name__}: {str(e)[:100]}")
+            print(f"   Ошибка обновления JSON: {type(e).__name__}: {str(e)[:100]}")
             return False
     
     def analyze_all_models_with_fallback(self):
@@ -379,10 +379,10 @@ class UnifiedAnalyzerFixed:
         print_info_files = list(self.results_path.rglob("print_info.json"))
         
         if not print_info_files:
-            print("❌ Не найдено print_info.json файлов")
+            print("Не найдено print_info.json файлов")
             return 0, 0
         
-        print(f"🔍 Найдено ориентаций: {len(print_info_files)}")
+        print(f"Найдено ориентаций: {len(print_info_files)}")
         
         results = {
             'total': len(print_info_files),
@@ -420,26 +420,26 @@ class UnifiedAnalyzerFixed:
                             results['errors'] += 1
                             results['problem_files'].append(f"{model_name}/{orient_name}")
                 else:
-                    print(f"\n[{i}/{results['total']}] ❌ Неверный путь: {rel_path}")
+                    print(f"\n[{i}/{results['total']}] Неверный путь: {rel_path}")
                     results['errors'] += 1
                     results['problem_files'].append(str(rel_path))
                     
             except Exception as e:
-                print(f"\n[{i}/{results['total']}] ❌ Критическая ошибка: {e}")
+                print(f"\n[{i}/{results['total']}] Критическая ошибка: {e}")
                 results['errors'] += 1
                 results['problem_files'].append(str(print_info_path))
         
         # Статистика
-        print(f"\n{'='*70}")
-        print("📊 РЕЗУЛЬТАТЫ АНАЛИЗА")
-        print(f"{'='*70}")
-        print(f"📁 Всего ориентаций: {results['total']}")
-        print(f"✅ Успешно обновлено: {results['success']}")
-        print(f"ℹ️  Без изменений: {results['no_changes']}")
-        print(f"❌ Ошибки: {results['errors']}")
+        print(f"\n" + "="*70)
+        print("РЕЗУЛЬТАТЫ АНАЛИЗА")
+        print("="*70)
+        print(f"Всего ориентаций: {results['total']}")
+        print(f"Успешно обновлено: {results['success']}")
+        print(f"Без изменений: {results['no_changes']}")
+        print(f"Ошибки: {results['errors']}")
         
         if results['problem_files']:
-            print(f"\n📋 Проблемные файлы (первые 5):")
+            print(f"\nПроблемные файлы (первые 5):")
             for pf in results['problem_files'][:5]:
                 print(f"   - {pf}")
             if len(results['problem_files']) > 5:
@@ -455,7 +455,7 @@ class UnifiedAnalyzerFixed:
         
         # Проверяем STL файлы
         stl_files = list(self.results_path.rglob("model.stl"))
-        print(f"🔍 Найдено STL файлов: {len(stl_files)}")
+        print(f"Найдено STL файлов: {len(stl_files)}")
         
         problem_stl = []
         for stl_path in stl_files:
@@ -467,7 +467,7 @@ class UnifiedAnalyzerFixed:
                 problem_stl.append((stl_path, "ошибка доступа"))
         
         if problem_stl:
-            print(f"⚠️  Проблемные STL файлы:")
+            print(f"Проблемные STL файлы:")
             for path, issue in problem_stl[:3]:
                 rel_path = path.relative_to(self.results_path)
                 print(f"   - {rel_path}: {issue}")
@@ -476,7 +476,7 @@ class UnifiedAnalyzerFixed:
         
         # Проверяем G-code файлы
         gcode_files = list(self.results_path.rglob("output.gcode"))
-        print(f"\n🔍 Найдено G-code файлов: {len(gcode_files)}")
+        print(f"\nНайдено G-code файлов: {len(gcode_files)}")
         
         return len(stl_files), len(gcode_files)
 
@@ -493,24 +493,22 @@ def main():
     stl_count, gcode_count = analyzer.check_and_fix_files()
     
     if stl_count == 0:
-        print("\n❌ Нет STL файлов для анализа!")
+        print("\nНет STL файлов для анализа!")
         print("   Убедитесь, что заменили placeholder файлы реальными STL")
         return
     
     # 2. Запускаем анализ
     results = analyzer.analyze_all_models_with_fallback()
     
-    print("\n🎯 АНАЛИЗ ЗАВЕРШЕН!")
+    print("\nАНАЛИЗ ЗАВЕРШЕН!")
     print("="*60)
     
     if results['success'] > 0:
-        print(f"\n✅ ОБНОВЛЕНО: {results['success']} файлов")
-        print(f"📊 ДАННЫЕ В print_info.json:")
+        print(f"\nОБНОВЛЕНО: {results['success']} файлов")
+        print(f"ДАННЫЕ В print_info.json:")
         print(f"   • rotation_info - углы поворота")
         print(f"   • geometry_analysis - размеры и объем")
         print(f"   • estimated_values - оценки печати")
-        
-        # Показываем пример обновленного файла
 
 if __name__ == "__main__":
     main()

@@ -31,21 +31,21 @@ class MinimalStructureCreator:
         """
         Создает структуру папок для конкретной модели в results/
         """
-        print(f"\n{'='*50}")
+        print("\n" + "="*50)
         print(f"СОЗДАНИЕ СТРУКТУРЫ ДЛЯ МОДЕЛИ: {model_name}")
-        print(f"{'='*50}")
+        print("="*50)
         
         # Проверяем есть ли исходная модель
         source_stl = self.models_path / f"{model_name}.stl"
         if not source_stl.exists():
-            print(f"⚠️  Внимание: {source_stl.name} не найден в {self.models_path}")
+            print(f"Внимание: {source_stl.name} не найден в {self.models_path}")
             print("   Добавьте STL файл вручную или создайте позже")
         
         # Создаем папки для каждой ориентации в results
         for orient_name, angles, description in self.standard_orientations:
             self.create_orientation_structure(model_name, orient_name, angles, description)
         
-        print(f"\n✅ Структура создана для модели: {model_name}")
+        print(f"\nСтруктура создана для модели: {model_name}")
         print(f"   Создано ориентаций: {len(self.standard_orientations)}")
         print(f"   Путь: {self.results_path / model_name}")
     
@@ -57,7 +57,7 @@ class MinimalStructureCreator:
         orient_dir = self.results_path / model_name / orient_name
         orient_dir.mkdir(parents=True, exist_ok=True)
         
-        print(f"\n📁 Создаю ориентацию: {model_name}/{orient_name}")
+        print(f"\nСоздаю ориентацию: {model_name}/{orient_name}")
         print(f"   Углы: X={angles[0]}°, Y={angles[1]}°, Z={angles[2]}°")
         
         # 1. Создаем placeholder model.stl
@@ -69,7 +69,7 @@ class MinimalStructureCreator:
         # 3. Создаем пустой G-code файл
         self.create_gcode_file(orient_dir, model_name, orient_name, angles)
         
-        print(f"   ✅ Ориентация {orient_name} создана")
+        print(f"   Ориентация {orient_name} создана")
     
     def create_stl_placeholder(self, orient_dir, model_name, orient_name, angles, description):
         """Создает placeholder для STL файла в results/"""
@@ -96,7 +96,7 @@ class MinimalStructureCreator:
             with open(placeholder_stl, 'w', encoding='utf-8') as f:
                 f.write(placeholder_content)
             
-            print(f"   📄 Создан: model.stl ({placeholder_stl.stat().st_size} байт)")
+            print(f"   Создан: model.stl ({placeholder_stl.stat().st_size} байт)")
     
     def create_print_info_json(self, orient_dir, model_name, orient_name, angles, description):
         """Создает print_info.json с ВСЕМИ данными (включая геометрию)"""
@@ -146,7 +146,7 @@ class MinimalStructureCreator:
         with open(print_info_file, 'w', encoding='utf-8') as f:
             json.dump(print_info, f, indent=2, ensure_ascii=False)
         
-        print(f"   📄 Создан: print_info.json (с геометрией и углами)")
+        print(f"   Создан: print_info.json (с геометрией и углами)")
     
     def create_gcode_file(self, orient_dir, model_name, orient_name, angles):
         """Создает пустой G-code файл"""
@@ -210,38 +210,38 @@ M117 Print complete
             with open(gcode_file, 'w', encoding='utf-8') as f:
                 f.write(gcode_content)
             
-            print(f"   📄 Создан: output.gcode ({gcode_file.stat().st_size} байт)")
+            print(f"   Создан: output.gcode ({gcode_file.stat().st_size} байт)")
     
     def create_for_all_models(self):
         """Создает структуру для всех моделей"""
         stl_files = list(self.models_path.glob("*.stl"))
         
         if not stl_files:
-            print("❌ Нет STL файлов в папке models/")
+            print("Нет STL файлов в папке models/")
             print("   Добавьте STL файлы в: dataset/models/")
             return
         
-        print(f"\n🔍 Найдено моделей: {len(stl_files)}")
+        print(f"\nНайдено моделей: {len(stl_files)}")
         
         for stl_file in stl_files:
             model_name = stl_file.stem
             self.create_structure_for_model(model_name)
         
-        print(f"\n{'='*50}")
-        print(f"✅ СТРУКТУРА СОЗДАНА ДЛЯ {len(stl_files)} МОДЕЛЕЙ")
-        print(f"{'='*50}")
+        print(f"\n" + "="*50)
+        print(f"СТРУКТУРА СОЗДАНА ДЛЯ {len(stl_files)} МОДЕЛЕЙ")
+        print("="*50)
     
     def print_summary(self):
         """Выводит статистику"""
-        print(f"\n{'='*50}")
+        print(f"\n" + "="*50)
         print("СТАТИСТИКА СОЗДАННОЙ СТРУКТУРЫ")
-        print(f"{'='*50}")
+        print("="*50)
         
         # Считаем модели в results
         models = list(self.results_path.iterdir())
         models = [m for m in models if m.is_dir()]
         
-        print(f"📦 Моделей: {len(models)}")
+        print(f"Моделей: {len(models)}")
         
         total_orientations = 0
         for model_dir in models:
@@ -249,38 +249,38 @@ M117 Print complete
             orientations = [o for o in orientations if o.is_dir()]
             total_orientations += len(orientations)
             
-            print(f"  ├─ {model_dir.name}: {len(orientations)} ориентаций")
+            print(f"  |-- {model_dir.name}: {len(orientations)} ориентаций")
             for orient in orientations:
                 # Проверяем файлы
                 files = list(orient.glob("*"))
                 file_list = ", ".join([f.name for f in files])
-                print(f"  │   ├─ {orient.name}: {file_list}")
+                print(f"  |    |-- {orient.name}: {file_list}")
         
-        print(f"🎯 Всего ориентаций: {total_orientations}")
+        print(f"Всего ориентаций: {total_orientations}")
         
         # Считаем файлы
         json_files = list(self.results_path.rglob("*.json"))
         stl_files = list(self.results_path.rglob("*.stl"))
         gcode_files = list(self.results_path.rglob("*.gcode"))
         
-        print(f"📄 JSON файлов: {len(json_files)}")
-        print(f"📁 STL файлов: {len(stl_files)}")
-        print(f"⚙️  G-code файлов: {len(gcode_files)}")
+        print(f"JSON файлов: {len(json_files)}")
+        print(f"STL файлов: {len(stl_files)}")
+        print(f"G-code файлов: {len(gcode_files)}")
         
-        print(f"\n📁 СТРУКТУРА:")
+        print(f"\nСТРУКТУРА:")
         print(f"  dataset/")
-        print(f"  ├── models/                    # Исходные STL")
-        print(f"  │   └── [model_name].stl")
-        print(f"  └── results/                   # ВСЁ остальное")
-        print(f"      └── [model_name]/")
-        print(f"          ├── default/")
-        print(f"          │   ├── model.stl     # placeholder")
-        print(f"          │   ├── print_info.json # все данные")
-        print(f"          │   └── output.gcode  # пустой")
-        print(f"          ├── flat/")
-        print(f"          └── optimal/")
+        print(f"  |-- models/                    # Исходные STL")
+        print(f"  |    |-- [model_name].stl")
+        print(f"  |-- results/                   # ВСЕ остальное")
+        print(f"       |-- [model_name]/")
+        print(f"           |-- default/")
+        print(f"           |    |-- model.stl     # placeholder")
+        print(f"           |    |-- print_info.json # все данные")
+        print(f"           |    |-- output.gcode  # пустой")
+        print(f"           |-- flat/")
+        print(f"           |-- optimal/")
         
-        print(f"\n📋 ПРИМЕР print_info.json:")
+        print(f"\nПРИМЕР print_info.json:")
         print(f'''  {{
     "model_name": "1_16.12",
     "orientation_name": "default",
@@ -310,12 +310,12 @@ M117 Print complete
     "status": "not_printed"
   }}''')
         
-        print(f"\n🎯 ДАЛЬНЕЙШИЕ ШАГИ:")
+        print(f"\nДАЛЬНЕЙШИЕ ШАГИ:")
         print(f"  1. Замените placeholder model.stl реальными повернутыми моделями")
         print(f"  2. Запустите геометрический анализ для заполнения geometry_analysis")
         print(f"  3. Загрузите model.stl в Cura, замените output.gcode")
         print(f"  4. Заполните estimated_values из Cura")
-        print(f"{'='*50}")
+        print("="*50)
 
 def main():
     """Основная функция"""
@@ -339,7 +339,7 @@ def main():
                 model_name = model_name[:-4]
             creator.create_structure_for_model(model_name)
     else:
-        print("\n📋 ВЫБЕРИТЕ РЕЖИМ:")
+        print("\nВЫБЕРИТЕ РЕЖИМ:")
         print("  1 - Создать структуру для всех моделей")
         print("  2 - Создать структуру для конкретной модели")
         
@@ -352,9 +352,9 @@ def main():
             if model_name:
                 creator.create_structure_for_model(model_name)
             else:
-                print("❌ Имя модели не указано")
+                print("Имя модели не указано")
         else:
-            print("❌ Неверный выбор")
+            print("Неверный выбор")
     
     creator.print_summary()
 
