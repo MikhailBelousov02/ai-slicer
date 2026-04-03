@@ -1,0 +1,106 @@
+{
+  "stl_file": "part-2.stl",
+  "orientation_type": "only_x_y_90deg",
+  "weights": {
+    "filament": 0.45,
+    "time": 0.15,
+    "quality": 0.4
+  },
+  "best_orientation": {
+    "angles": {
+      "x": 270,
+      "y": 180
+    },
+    "dimensions": "20.0x18.5x51.0",
+    "filament_m": 2.58,
+    "time_min": 78.65,
+    "quality_score": 7.29,
+    "total_score": 14.0412
+  },
+  "all_recommendations": [
+    {
+      "rank": 1,
+      "angles": {
+        "x": 270,
+        "y": 180
+      },
+      "dimensions": "20.0x18.5x51.0",
+      "filament_m": 2.58,
+      "time_min": 78.65,
+      "quality_score": 7.29,
+      "total_score": 14.0412
+    },
+    {
+      "rank": 2,
+      "angles": {
+        "x": 270,
+        "y": 0
+      },
+      "dimensions": "20.0x18.5x51.0",
+      "filament_m": 2.561,
+      "time_min": 78.98,
+      "quality_score": 7.28,
+      "total_score": 14.0868
+    },
+    {
+      "rank": 3,
+      "angles": {
+        "x": 0,
+        "y": 90
+      },
+      "dimensions": "18.5x51.0x20.0",
+      "filament_m": 2.561,
+      "time_min": 78.98,
+      "quality_score": 7.24,
+      "total_score": 14.1021
+    },
+    {
+      "rank": 4,
+      "angles": {
+        "x": 0,
+        "y": 180
+      },
+      "dimensions": "20.0x51.0x18.5",
+      "filament_m": 2.58,
+      "time_min": 78.65,
+      "quality_score": 7.13,
+      "total_score": 14.1057
+    },
+    {
+      "rank": 5,
+      "angles": {
+        "x": 0,
+        "y": 270
+      },
+      "dimensions": "18.5x51.0x20.0",
+      "filament_m": 2.58,
+      "time_min": 78.65,
+      "quality_score": 7.13,
+      "total_score": 14.1057
+    },
+    {
+      "rank": 6,
+      "angles": {
+        "x": 270,
+        "y": 270
+      },
+      "dimensions": "51.0x18.5x20.0",
+      "filament_m": 2.561,
+      "time_min": 78.98,
+      "quality_score": 7.23,
+      "total_score": 14.1068
+    },
+    {
+      "rank": 7,
+      "angles": {
+        "x": 0,
+        "y": 0
+      },
+      "dimensions": "20.0x51.0x18.5",
+      "filament_m": 2.561,
+      "time_min": 78.98,
+      "quality_score": 7.22,
+      "total_score": 14.1101
+    }
+  ]
+}
