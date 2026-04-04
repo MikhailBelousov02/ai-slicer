@@ -1,249 +1,342 @@
-import trimesh
-import numpy as np
-import random
-import copy
+# -*- coding: utf-8 -*-
+import os
+import re
+import math
 import time
-from datetime import datetime
+from collections import Counter
 
-def load_mesh(stl_path):
-    """Загружает STL и возвращает mesh"""
-    print(f"📂 Загрузка модели: {stl_path}")
-    return trimesh.load(stl_path)
+import numpy as np
 
-def get_faces_info(mesh):
-    """
-    Возвращает массив нормалей граней и массив площадей граней.
-    Нормали нормализованы.
-    """
-    print("🔍 Анализ геометрии модели...")
-    normals = mesh.face_normals
-    areas = mesh.area_faces
-    print(f"   ✅ Найдено граней: {len(areas)}")
-    return normals, areas
+# ------------------------------------------------------------
+# Параметры, оптимизированные эволюционным алгоритмом Tweaker
+# ------------------------------------------------------------
+PARAMETER = {
+    "TAR_A": 0.023251193283878126,
+    "TAR_B": 0.17967732044591803,
+    "RELATIVE_F": 11.250931864115714,
+    "CONTOUR_F": 0.219523237806102,
+    "BOTTOM_F": 1.3206227038470124,
+    "TAR_C": -0.016564249433447253,
+    "TAR_D": 1.0592490333488807,
+    "TAR_E": 0.011503545133447014,
+    "FIRST_LAY_H": 0.04754881938390257,
+    "VECTOR_TOL": -0.0008385913582234466,
+    "NEGL_FACE_SIZE": 0.4737309463791554,
+    "ASCENT": -0.07809801382985776,
+    "PLAFOND_ADV": 0.059937025927212395,
+    "CONTOUR_AMOUNT": 0.018242751444131886,
+    "OV_H": 2.574100894603089,
+    "height_offset": 2.372824083342488,
+    "height_log": 0.04137517666768212,
+    "height_log_k": 1.9325457851679673
+}
 
-def rotation_matrix_from_angles(angles_deg):
-    """
-    Создаёт матрицу поворота 3x3 для углов Эйлера (ZYX порядок).
-    angles_deg: (rx, ry, rz) в градусах.
-    """
-    rx, ry, rz = np.radians(angles_deg)
-    Rx = np.array([[1, 0, 0],
-                   [0, np.cos(rx), -np.sin(rx)],
-                   [0, np.sin(rx), np.cos(rx)]])
-    Ry = np.array([[np.cos(ry), 0, np.sin(ry)],
-                   [0, 1, 0],
-                   [-np.sin(ry), 0, np.cos(ry)]])
-    Rz = np.array([[np.cos(rz), -np.sin(rz), 0],
-                   [np.sin(rz), np.cos(rz), 0],
-                   [0, 0, 1]])
-    return Rz @ Ry @ Rx
+PARAMETER_VOL = {
+    "TAR_A": 0.012826785357111374,
+    "TAR_B": 0.1774847296275851,
+    "RELATIVE_F": 6.610621027964314,
+    "CONTOUR_F": 0.23228623269775997,
+    "BOTTOM_F": 1.167152017941474,
+    "TAR_C": 0.24308070476924726,
+    "TAR_D": 0.6284515508160871,
+    "TAR_E": 0.032157292647062234,
+    "FIRST_LAY_H": 0.029227991916155015,
+    "VECTOR_TOL": -0.0011163303070972383,
+    "NEGL_FACE_SIZE": 0.4928696161029859,
+    "ASCENT": -0.23897449119622627,
+    "PLAFOND_ADV": 0.04079208948120519,
+    "CONTOUR_AMOUNT": 0.0101472219892684,
+    "OV_H": 1.0370178217794535,
+    "height_offset": 2.7417608343142073,
+    "height_log": 0.06442030687034085,
+    "height_log_k": 0.3933594673063997
+}
 
-def compute_overhang_area(normals, areas, angles_deg, threshold_deg=45):
-    """
-    Вычисляет общую площадь граней, угол наклона которых превышает порог.
-    """
-    R = rotation_matrix_from_angles(angles_deg)
-    rotated_normals = (R @ normals.T).T
-    
-    cos_theta = rotated_normals[:, 2]
-    theta = np.degrees(np.arccos(np.clip(cos_theta, -1, 1)))
-    
-    overhang_mask = theta > threshold_deg
-    overhang_area = np.sum(areas[overhang_mask])
-    return overhang_area
 
-def random_angle():
-    return random.uniform(0, 360)
+class AutoOrient:
+    """Автоматическая оптимизация ориентации модели (аналог Tweaker)"""
 
-def mutate(angles, mutation_strength=10):
-    """Мутация: добавляет нормальный шум к каждому углу"""
-    new_angles = angles + np.random.normal(0, mutation_strength, 3)
-    return np.mod(new_angles, 360)
+    def __init__(self, mesh, min_volume=False, verbose=True):
+        """
+        mesh: объект trimesh
+        min_volume: если True, минимизируется объём поддержек, иначе площадь
+        verbose: выводить отладочную информацию
+        """
+        self.verbose = verbose
+        self.min_volume = min_volume
+        # Загружаем параметры
+        params = PARAMETER_VOL if min_volume else PARAMETER
+        for k, v in params.items():
+            setattr(self, k, v)
 
-def crossover(a, b):
-    """Одноточечный кроссовер между двумя особями"""
-    point = random.randint(0, 2)
-    child = np.concatenate([a[:point], b[point:]])
-    return child
+        # Предобработка mesh в формат Tweaker
+        self.mesh = self._preprocess(mesh)
+        if verbose:
+            print(f"Граней после предобработки: {len(self.mesh)}")
 
-def format_time(seconds):
-    """Форматирует время в удобный вид"""
-    if seconds < 60:
-        return f"{seconds:.1f} сек"
-    elif seconds < 3600:
-        minutes = seconds / 60
-        return f"{minutes:.1f} мин"
-    else:
-        hours = seconds / 3600
-        return f"{hours:.1f} ч"
+        # Сбор кандидатов
+        candidates = self._collect_candidates()
+        if verbose:
+            print(f"Найдено кандидатов: {len(candidates)}")
 
-def evolutionary_optimization(normals, areas,
-                              pop_size=60,
-                              generations=200,
-                              mutation_strength=15,
-                              crossover_prob=0.7,
-                              mutation_prob=0.3,
-                              elite_ratio=0.2,
-                              threshold_deg=45):
-    """
-    Эволюционный поиск лучшей ориентации.
-    Возвращает лучшие углы и историю fitness.
-    """
-    print(f"\n🧬 Запуск эволюционного алгоритма")
-    print(f"   Параметры: поколений={generations}, популяция={pop_size}")
-    print(f"   Всего итераций: {generations * pop_size}")
-    print()
-    
-    start_time = time.time()
-    
-    # Инициализация популяции
-    print("🌱 Создание начальной популяции...")
-    population = [np.array([random_angle(), random_angle(), random_angle()]) 
-                  for _ in range(pop_size)]
-    
-    best_fitness_history = []
-    best_angles = None
-    best_fitness = float('inf')
-    
-    # Для прогресс-бара
-    bar_length = 40
-    
-    for gen in range(generations):
-        gen_start = time.time()
-        
-        # Оценка приспособленности
-        fitness = [compute_overhang_area(normals, areas, ind, threshold_deg) 
-                   for ind in population]
-        
-        # Обновление лучшего решения
-        min_idx = np.argmin(fitness)
-        if fitness[min_idx] < best_fitness:
-            best_fitness = fitness[min_idx]
-            best_angles = population[min_idx].copy()
-        best_fitness_history.append(best_fitness)
-        
-        # Прогресс-бар
-        progress = (gen + 1) / generations
-        filled = int(bar_length * progress)
-        bar = '█' * filled + '░' * (bar_length - filled)
-        
-        elapsed = time.time() - start_time
-        eta = (elapsed / (gen + 1)) * (generations - gen - 1)
-        
-        # Статусная строка
-        print(f"\r🧬 Поколение {gen+1:3d}/{generations} [{bar}] "
-              f"Лучшая площадь: {best_fitness:8.2f} мм² | "
-              f"Прошло: {format_time(elapsed)} | "
-              f"Осталось: {format_time(eta)}", end='', flush=True)
-        
-        # Отбор элиты
-        elite_count = max(1, int(pop_size * elite_ratio))
-        elite_indices = np.argsort(fitness)[:elite_count]
-        elite = [population[i].copy() for i in elite_indices]
-        
-        # Создание нового поколения
-        new_population = elite.copy()
-        
-        while len(new_population) < pop_size:
-            # Турнирный отбор
-            tournament = random.sample(range(pop_size), 3)
-            parent1 = population[min(tournament, key=lambda i: fitness[i])]
-            parent2 = population[min(tournament, key=lambda i: fitness[i])]
-            
-            # Кроссовер
-            if random.random() < crossover_prob:
-                child = crossover(parent1, parent2)
+        # Оценка кандидатов
+        results = []
+        for orientation in candidates:
+            bottom, overhang, contour = self._evaluate(orientation)
+            unprint = self._target_function(bottom, overhang, contour)
+            results.append([orientation, bottom, overhang, contour, unprint])
+            if verbose:
+                print(f"  {orientation} -> bottom={bottom:.1f} over={overhang:.1f} "
+                      f"contour={contour:.1f} unprint={unprint:.4f}")
+
+        # Выбираем лучший
+        results.sort(key=lambda x: x[4])
+        best = results[0]
+        self.best_orientation = best[0]
+        self.bottom_area = best[1]
+        self.overhang_area = best[2]
+        self.contour = best[3]
+        self.unprintability = best[4]
+        # Матрица поворота
+        self.rotation_matrix = self._euler(self.best_orientation)
+
+    def _preprocess(self, mesh):
+        """Преобразует trimesh в массив формата Tweaker: [нормаль, v0, v1, v2, доп.поля]"""
+        # Берём вершины и грани
+        vertices = mesh.vertices
+        faces = mesh.faces
+        # Нормали граней (уже есть в mesh)
+        normals = mesh.face_normals
+        areas = mesh.area_faces
+
+        # Строим массив: для каждой грани [norm_x, norm_y, norm_z, v0_x, v0_y, v0_z, v1_x, v1_y, v1_z, v2_x, v2_y, v2_z]
+        n_faces = len(faces)
+        data = np.zeros((n_faces, 12))
+        data[:, 0:3] = normals
+        for i, face in enumerate(faces):
+            data[i, 3:6] = vertices[face[0]]
+            data[i, 6:9] = vertices[face[1]]
+            data[i, 9:12] = vertices[face[2]]
+
+        # Добавляем столбцы: площадь (удвоенная), max_z, median_z
+        addendum = np.zeros((n_faces, 5))
+        addendum[:, 0] = areas * 2          # удвоенная площадь
+        addendum[:, 1] = np.max(data[:, [5, 8, 11]], axis=1)   # max z
+        addendum[:, 2] = np.median(data[:, [5, 8, 11]], axis=1) # median z
+        # Доп. поля для проекций (заполнятся позже)
+        addendum[:, 3] = 0   # min_proj
+        addendum[:, 4] = 0   # max_proj
+
+        mesh_array = np.hstack((data, addendum))
+
+        # Нормализуем нормали (хотя они уже нормализованы)
+        lengths = np.sqrt(np.sum(mesh_array[:, 0:3] ** 2, axis=1))
+        mesh_array[:, 0:3] = mesh_array[:, 0:3] / lengths[:, np.newaxis]
+        # Площадь делим на 2 (т.к. была удвоенная)
+        mesh_array[:, 12] /= 2
+
+        # Удаляем слишком маленькие грани
+        if self.NEGL_FACE_SIZE > 0:
+            negl = self.NEGL_FACE_SIZE * 0.1  # как в оригинале
+            mesh_array = mesh_array[mesh_array[:, 12] > negl]
+
+        return mesh_array
+
+    def _collect_candidates(self):
+        """Собирает все перспективные ориентации"""
+        cand = []
+        # 1. Накопление нормалей
+        cand += self._area_cumulation(12)
+        # 2. Death Star (случайные грани)
+        cand += self._death_star(12)
+        # 3. Дополнительные фиксированные направления
+        cand += self._add_supplements()
+        # Удаляем дубликаты
+        cand = self._remove_duplicates(cand)
+        return cand
+
+    def _area_cumulation(self, best_n):
+        """Поиск наиболее частых нормалей с весами площадей"""
+        normals = self.mesh[:, 0:3]
+        areas = self.mesh[:, 12]
+        orient = Counter()
+        for i in range(len(normals)):
+            key = tuple(np.around(normals[i], decimals=6))
+            orient[key] += areas[i]
+        top = orient.most_common(best_n)
+        # Преобразуем в список ориентаций (вектор, вес не нужен)
+        return [list(v[0]) for v in top]
+
+    def _death_star(self, best_n):
+        """Генерация случайных граней через комбинации рёбер"""
+        n = len(self.mesh)
+        iterations = max(1, int(20000 / (n + 100)))
+        vertices = self.mesh[:, 3:12].reshape(n, 3, 3)
+        orientations = []
+        for _ in range(iterations):
+            # Выбираем два случайных индекса вершин из каждой грани
+            idx = np.random.choice(3, 2, replace=False)
+            v0 = vertices[:, idx[0], :]
+            v1 = vertices[:, idx[1], :]
+            # Третья вершина — псевдослучайная из другой грани
+            other_idx = (np.arange(n) * 127 + 8191 + _) % n
+            v2 = vertices[other_idx, np.random.randint(0, 3), :]
+            normals = np.cross(v2 - v0, v1 - v0)
+            lengths = np.sqrt(np.sum(normals ** 2, axis=1))
+            with np.errstate(divide='ignore', invalid='ignore'):
+                normals = normals / lengths[:, np.newaxis]
+            # Округляем
+            normals = np.around(normals, decimals=6)
+            for norm in normals:
+                orientations.append(tuple(norm))
+        # Частотный анализ
+        cnt = Counter(orientations)
+        most = cnt.most_common(best_n)
+        # Фильтруем только те, что встретились >=2 раз
+        most = [list(v) for v, c in most if c >= 2]
+        # Добавляем антипараллельные
+        most += [[-v[0], -v[1], -v[2]] for v in most]
+        return most
+
+    @staticmethod
+    def _add_supplements():
+        """18 базовых направлений"""
+        v = [
+            [0, 0, -1], [0.70710678, 0, -0.70710678], [0, 0.70710678, -0.70710678],
+            [-0.70710678, 0, -0.70710678], [0, -0.70710678, -0.70710678],
+            [1, 0, 0], [0.70710678, 0.70710678, 0], [0, 1, 0], [-0.70710678, 0.70710678, 0],
+            [-1, 0, 0], [-0.70710678, -0.70710678, 0], [0, -1, 0], [0.70710678, -0.70710678, 0],
+            [0.70710678, 0, 0.70710678], [0, 0.70710678, 0.70710678],
+            [-0.70710678, 0, 0.70710678], [0, -0.70710678, 0.70710678], [0, 0, 1]
+        ]
+        return v
+
+    @staticmethod
+    def _remove_duplicates(orients, tol_deg=5):
+        """Удаление похожих направлений"""
+        tol = np.sin(np.radians(tol_deg))
+        unique = []
+        for o in orients:
+            dup = False
+            for u in unique:
+                if np.allclose(o, u, atol=tol):
+                    dup = True
+                    break
+            if not dup:
+                unique.append(o)
+        return unique
+
+    def _evaluate(self, orientation):
+        """Вычисляет bottom, overhang, contour для данной ориентации"""
+        # Проекции вершин на ориентацию
+        verts = self.mesh[:, 3:12].reshape(-1, 3, 3)
+        proj = np.inner(verts, orientation)  # (N, 3)
+        min_proj = np.min(proj, axis=1)
+        max_proj = np.max(proj, axis=1)
+        med_proj = np.median(proj, axis=1)
+
+        total_min = np.min(min_proj)
+
+        # Bottom: грани, у которых max_proj < total_min + FIRST_LAY_H
+        bottom_mask = max_proj < (total_min + self.FIRST_LAY_H)
+        bottom = np.sum(self.mesh[bottom_mask, 12])
+
+        # Overhang: грани с углом > ASCENT и не bottom
+        # Угол между нормалью и ориентацией: cos = dot(n, orientation)
+        # Нависание, если dot(n, orientation) < ASCENT (ASCENT отрицательный)
+        normals = self.mesh[:, 0:3]
+        dot = np.inner(normals, orientation)
+        overhang_mask = (dot < self.ASCENT) & (~bottom_mask)
+        overhang_faces = self.mesh[overhang_mask]
+        if len(overhang_faces) > 0:
+            if self.min_volume:
+                # Высота над основанием
+                heights = med_proj[overhang_mask] - total_min
+                inner = dot[overhang_mask] - self.ASCENT
+                # Формула объёма поддержек
+                overhang = np.sum(
+                    (self.height_offset + self.height_log * np.log(self.height_log_k * heights + 1)) *
+                    overhang_faces[:, 12] * np.abs(inner * (inner < 0)) ** self.OV_H
+                )
+                # Plafond – не будем усложнять, опустим
             else:
-                child = parent1.copy() if random.random() < 0.5 else parent2.copy()
-            
-            # Мутация
-            if random.random() < mutation_prob:
-                child = mutate(child, mutation_strength)
-            
-            new_population.append(child)
-        
-        population = new_population
-        mutation_strength *= 0.98
-    
-    print()  # Переход на новую строку
-    elapsed = time.time() - start_time
-    print(f"\n✅ Эволюция завершена за {format_time(elapsed)}")
-    
-    return best_angles, best_fitness_history
+                inner = dot[overhang_mask] - self.ASCENT
+                overhang = 2 * np.sum(overhang_faces[:, 12] * np.abs(inner * (inner < 0)) ** 2)
+        else:
+            overhang = 0
 
-def main(stl_input_path, stl_output_path=None, threshold_deg=45):
-    print("=" * 60)
-    print("🔄 АВТОМАТИЧЕСКАЯ ОПТИМИЗАЦИЯ ОРИЕНТАЦИИ МОДЕЛИ")
-    print("=" * 60)
-    print(f"📁 Входной файл: {stl_input_path}")
-    print(f"🎯 Критический угол: {threshold_deg}°")
-    print()
-    
-    # Загрузка модели
-    mesh = load_mesh(stl_input_path)
-    normals, areas = get_faces_info(mesh)
-    
-    total_area = np.sum(areas)
-    print(f"📏 Общая площадь поверхности: {total_area:.2f} мм²")
-    print(f"📐 Количество граней: {len(areas):,}")
-    print()
-    
-    # Запуск эволюционного поиска
-    best_angles, history = evolutionary_optimization(
-        normals, areas,
-        pop_size=100,
-        generations=1000,
-        mutation_strength=15,
-        threshold_deg=threshold_deg
-    )
-    
-    # Результаты
-    print("\n" + "=" * 60)
-    print("📊 РЕЗУЛЬТАТЫ ОПТИМИЗАЦИИ")
-    print("=" * 60)
-    print(f"🎯 Оптимальные углы поворота:")
-    print(f"   • Вращение по X (roll):  {best_angles[0]:6.1f}°")
-    print(f"   • Вращение по Y (pitch): {best_angles[1]:6.1f}°")
-    print(f"   • Вращение по Z (yaw):   {best_angles[2]:6.1f}°")
-    print()
-    
-    best_area = compute_overhang_area(normals, areas, best_angles, threshold_deg)
-    improvement = ((total_area - best_area) / total_area) * 100
-    print(f"📉 Площадь нависаний: {best_area:.2f} мм² из {total_area:.2f} мм²")
-    print(f"📈 Улучшение: {improvement:.1f}% (уменьшено на {total_area - best_area:.1f} мм²)")
-    print()
-    
-    # Применяем поворот к mesh и сохраняем
-    if stl_output_path is None:
-        stl_output_path = stl_input_path.replace('.stl', '_oriented.stl')
-    
-    print("💾 Применение поворота к модели...")
-    R = rotation_matrix_from_angles(best_angles)
-    transform_matrix = np.eye(4)
-    transform_matrix[:3, :3] = R
-    
-    oriented_mesh = mesh.copy()
-    oriented_mesh.apply_transform(transform_matrix)
-    oriented_mesh.export(stl_output_path)
-    
-    print(f"✅ Повёрнутая модель сохранена: {stl_output_path}")
-    print()
-    print("=" * 60)
-    print("✨ ГОТОВО! Модель оптимизирована для печати")
-    print("=" * 60)
-    
-    return best_angles, history
+        # Contour (периметр основания)
+        # Упрощённо: ищем грани, у которых median_z близок к основанию
+        contour_faces = self.mesh[med_proj < (total_min + self.FIRST_LAY_H)]
+        if len(contour_faces) > 0:
+            # Грубая оценка: сумма длин рёбер, лежащих в основании (требует сложной геометрии)
+            # Используем эвристику: периметр квадрата по площади bottom
+            contour = 4 * np.sqrt(bottom)  # упрощённо, как в Tweaker
+        else:
+            contour = 0
+
+        return bottom, overhang, contour
+
+    def _target_function(self, bottom, overhang, contour):
+        """Целевая функция unprintability (чем меньше, тем лучше)"""
+        if self.min_volume:
+            overhang /= 25  # для объёма
+            return (self.TAR_A * (overhang + self.TAR_B) +
+                    self.RELATIVE_F * (overhang + self.TAR_C) /
+                    (self.TAR_D + self.CONTOUR_F * contour + self.BOTTOM_F * bottom + self.TAR_E * overhang))
+        else:
+            return (self.TAR_A * (overhang + self.TAR_B) +
+                    self.RELATIVE_F * (overhang + self.TAR_C) /
+                    (self.TAR_D + self.CONTOUR_F * contour + self.BOTTOM_F * bottom))
+
+    def _euler(self, orientation):
+        """Вычисляет ось, угол и матрицу поворота, чтобы orientation стал вертикальным вниз"""
+        target = np.array([0, 0, -1])
+        if np.allclose(orientation, target, atol=abs(self.VECTOR_TOL)):
+            phi = 0
+            axis = [1, 0, 0]
+        elif np.allclose(orientation, -target, atol=abs(self.VECTOR_TOL)):
+            phi = np.pi
+            axis = [1, 0, 0]
+        else:
+            phi = np.pi - np.arccos(-orientation[2])
+            axis = [-orientation[1], orientation[0], 0]
+            axis = axis / np.linalg.norm(axis)
+        # Матрица поворота по формуле Родрига
+        v = np.array(axis)
+        c = math.cos(phi)
+        s = math.sin(phi)
+        R = np.array([
+            [v[0]*v[0]*(1-c)+c, v[0]*v[1]*(1-c)-v[2]*s, v[0]*v[2]*(1-c)+v[1]*s],
+            [v[1]*v[0]*(1-c)+v[2]*s, v[1]*v[1]*(1-c)+c, v[1]*v[2]*(1-c)-v[0]*s],
+            [v[2]*v[0]*(1-c)-v[1]*s, v[2]*v[1]*(1-c)+v[0]*s, v[2]*v[2]*(1-c)+c]
+        ])
+        return R
+
+
+def auto_orient(input_stl, output_stl, min_volume=False, verbose=True):
+    import trimesh
+    mesh = trimesh.load(input_stl)
+    orienter = AutoOrient(mesh, min_volume=min_volume, verbose=verbose)
+    # Преобразуем 3x3 → 4x4
+    R = orienter.rotation_matrix
+    transform = np.eye(4)
+    transform[:3, :3] = R
+    rotated = mesh.copy()
+    rotated.apply_transform(transform)
+    rotated.export(output_stl)
+    if verbose:
+        print(f"Результат сохранён: {output_stl}")
+        print(f"Unprintability = {orienter.unprintability:.4f}")
+        print(f"Площадь нависаний = {orienter.overhang_area:.1f} мм²")
+        print(f"Площадь основания = {orienter.bottom_area:.1f} мм²")
+    return transform
+
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) < 2:
-        print("Использование: python auto_orient.py model.stl [output.stl]")
-        print()
-        print("Примеры:")
-        print("  python auto_orient.py test_cube.stl")
-        print("  python auto_orient.py model.stl oriented.stl")
-        print("  python auto_orient.py model.stl oriented.stl 50  # порог 50°")
+    if len(sys.argv) < 3:
+        print("Использование: python auto_orient.py input.stl output.stl [--volume]")
     else:
-        output = sys.argv[2] if len(sys.argv) > 2 else None
-        threshold = float(sys.argv[3]) if len(sys.argv) > 3 else 45
-        main(sys.argv[1], output, threshold)
+        vol = "--volume" in sys.argv
+        auto_orient(sys.argv[1], sys.argv[2], min_volume=vol, verbose=True)
