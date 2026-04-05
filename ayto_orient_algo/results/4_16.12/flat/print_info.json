@@ -1,0 +1,49 @@
+{
+  "model_name": "4_16.12",
+  "orientation_name": "flat",
+  "rotation_info": {
+    "angles_degrees": {
+      "x": 0.0,
+      "y": 180.0,
+      "z": 0.0
+    },
+    "description": "flat \u043e\u0440\u0438\u0435\u043d\u0442\u0430\u0446\u0438\u044f",
+    "updated_date": "2025-12-17T18:58:57.239670"
+  },
+  "geometry_analysis": {
+    "bounding_box_mm": {
+      "width": 66.0,
+      "depth": 75.5,
+      "height": 56.25
+    },
+    "volume_cm3": 23.243127828042674,
+    "surface_area_cm2": 109.84008031754051,
+    "analysis_date": "2025-12-19T00:42:40.930555",
+    "status": "analyzed"
+  },
+  "print_session": {
+    "print_date": "",
+    "printer_used": "Ender-3 V2",
+    "operator": "",
+    "status": "analyzed",
+    "last_updated": "2025-12-19T00:42:41.029541"
+  },
+  "estimated_values": {
+    "time_minutes": 237,
+    "material_g": 30.1,
+    "layer_count": 281,
+    "filament_length_m": 10.01,
+    "printing_rate": 5,
+    "analysis_date": "2025-12-19T00:39:21.070429",
+    "source": "gcode_analysis",
+    "notes": [
+      "\u0412\u0440\u0435\u043c\u044f \u0438\u0437 TIME:\u0441\u0435\u043a\u0443\u043d\u0434\u044b",
+      "\u041c\u0430\u0442\u0435\u0440\u0438\u0430\u043b \u0438\u0437 Filament used",
+      "\u0421\u043b\u043e\u0438 \u0438\u0437 LAYER_COUNT"
+    ]
+  },
+  "status": "not_printed",
+  "created_date": "2025-12-17T18:51:55.726397",
+  "last_updated": "2025-12-19T00:42:41.029541",
+  "analysis_status": "completed"
+}
