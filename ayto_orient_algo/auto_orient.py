@@ -1,17 +1,11 @@
-# -*- coding: utf-8 -*-
 import os
 import re
 import math
 import time
 from collections import Counter
-
 import numpy as np
 
-# ------------------------------------------------------------
-# Параметры, оптимизированные эволюционным алгоритмом Tweaker
-# ------------------------------------------------------------
 PARAMETER = {
-    # === Основные коэффициенты целевой функции (unprintability) ===
     "TAR_A": 0.027889,          # Вес линейной части: умножается на (overhang + TAR_B)
     "TAR_B": 0.110271,          # Сдвиг для линейной части (overhang + TAR_B)
     "RELATIVE_F": 6.079397,     # Вес дробной части: умножается на (overhang + TAR_C) / знаменатель
@@ -21,7 +15,7 @@ PARAMETER = {
     "TAR_D": 0.623361,          # Свободный член в знаменателе
     "TAR_E": 0.019795,          # Коэффициент при overhang в знаменателе (только для min_volume=False)
 
-    # === Параметры предобработки и геометрии ===
+    # Параметры предобработки и геометрии
     "FIRST_LAY_H": 0.04754881938390257,  # Толщина первого слоя (мм) – грани в пределах этой высоты от нижней точки считаются основанием
     "VECTOR_TOL": -0.0008385913582234466, # Допуск для сравнения векторов (близость к вертикали)
     "NEGL_FACE_SIZE": 0.4737309463791554, # Минимальная площадь грани (мм²) – меньшие грани отбрасываются для ускорения
@@ -29,7 +23,7 @@ PARAMETER = {
     "PLAFOND_ADV": 0.059937025927212395,  # Поправка для "потолочных" граней (для extended_mode)
     "CONTOUR_AMOUNT": 0.018242751444131886, # Дополнительный штраф за количество граней в контуре (в extended_mode)
 
-    # === Параметры для режима объёма поддержек (используются только при min_volume=True) ===
+    # используются только при min_volume=True
     "OV_H": 2.574100894603089,      # Показатель степени для штрафа нависаний (влияет на нелинейность)
     "height_offset": 2.372824083342488,   # Сдвиг в формуле объёма поддержек
     "height_log": 0.04137517666768212,    # Коэффициент при логарифме высоты
@@ -46,7 +40,7 @@ PARAMETER_VOL = {
     "BOTTOM_F": 1.167152017941474,
     "TAR_C": 0.24308070476924726,
     "TAR_D": 0.6284515508160871,
-    "TAR_E": 0.032157292647062234,   # Используется в знаменателе при min_volume=True? В оригинале – да
+    "TAR_E": 0.032157292647062234,
     "FIRST_LAY_H": 0.029227991916155015,
     "VECTOR_TOL": -0.0011163303070972383,
     "NEGL_FACE_SIZE": 0.4928696161029859,
@@ -61,14 +55,9 @@ PARAMETER_VOL = {
 
 
 class AutoOrient:
-    """Автоматическая оптимизация ориентации модели (аналог Tweaker)"""
 
     def __init__(self, mesh, min_volume=False, verbose=True):
-        """
-        mesh: объект trimesh
-        min_volume: если True, минимизируется объём поддержек, иначе площадь
-        verbose: выводить отладочную информацию
-        """
+
         self.verbose = verbose
         self.min_volume = min_volume
         # Загружаем параметры
@@ -76,7 +65,6 @@ class AutoOrient:
         for k, v in params.items():
             setattr(self, k, v)
 
-        # Предобработка mesh в формат Tweaker
         self.mesh = self._preprocess(mesh)
         if verbose:
             print(f"Граней после предобработки: {len(self.mesh)}")
@@ -104,11 +92,10 @@ class AutoOrient:
         self.overhang_area = best[2]
         self.contour = best[3]
         self.unprintability = best[4]
-        # Матрица поворота
         self.rotation_matrix = self._euler(self.best_orientation)
 
     def _preprocess(self, mesh):
-        """Преобразует trimesh в массив формата Tweaker: [нормаль, v0, v1, v2, доп.поля]"""
+        # Преобразуем в массив [нормаль, v0, v1, v2, доп.поля]
         # Берём вершины и грани
         vertices = mesh.vertices
         faces = mesh.faces
@@ -136,10 +123,8 @@ class AutoOrient:
 
         mesh_array = np.hstack((data, addendum))
 
-        # Нормализуем нормали (хотя они уже нормализованы)
         lengths = np.sqrt(np.sum(mesh_array[:, 0:3] ** 2, axis=1))
         mesh_array[:, 0:3] = mesh_array[:, 0:3] / lengths[:, np.newaxis]
-        # Площадь делим на 2 (т.к. была удвоенная)
         mesh_array[:, 12] /= 2
 
         # Удаляем слишком маленькие грани
@@ -150,11 +135,11 @@ class AutoOrient:
         return mesh_array
 
     def _collect_candidates(self):
-        """Собирает все перспективные ориентации"""
+        # Собираем все ориентации
         cand = []
         # 1. Накопление нормалей
         cand += self._area_cumulation(12)
-        # 2. Death Star (случайные грани)
+        # 2. Случайные грани
         cand += self._death_star(12)
         # 3. Дополнительные фиксированные направления
         cand += self._add_supplements()
@@ -163,7 +148,7 @@ class AutoOrient:
         return cand
 
     def _area_cumulation(self, best_n):
-        """Поиск наиболее частых нормалей с весами площадей"""
+        # Поиск наиболее частых нормалей с весами площадей
         normals = self.mesh[:, 0:3]
         areas = self.mesh[:, 12]
         orient = Counter()
@@ -175,7 +160,7 @@ class AutoOrient:
         return [list(v[0]) for v in top]
 
     def _death_star(self, best_n):
-        """Генерация случайных граней через комбинации рёбер"""
+        # Генерация случайных граней через комбинации рёбер
         n = len(self.mesh)
         iterations = max(1, int(20000 / (n + 100)))
         vertices = self.mesh[:, 3:12].reshape(n, 3, 3)
@@ -185,7 +170,7 @@ class AutoOrient:
             idx = np.random.choice(3, 2, replace=False)
             v0 = vertices[:, idx[0], :]
             v1 = vertices[:, idx[1], :]
-            # Третья вершина — псевдослучайная из другой грани
+            # Третья вершина — случайная из другой грани
             other_idx = (np.arange(n) * 127 + 8191 + _) % n
             v2 = vertices[other_idx, np.random.randint(0, 3), :]
             normals = np.cross(v2 - v0, v1 - v0)
@@ -199,15 +184,13 @@ class AutoOrient:
         # Частотный анализ
         cnt = Counter(orientations)
         most = cnt.most_common(best_n)
-        # Фильтруем только те, что встретились >=2 раз
         most = [list(v) for v, c in most if c >= 2]
-        # Добавляем антипараллельные
         most += [[-v[0], -v[1], -v[2]] for v in most]
         return most
 
     @staticmethod
     def _add_supplements():
-        """18 базовых направлений"""
+        # Базовые направления
         v = [
             [0, 0, -1], [0.70710678, 0, -0.70710678], [0, 0.70710678, -0.70710678],
             [-0.70710678, 0, -0.70710678], [0, -0.70710678, -0.70710678],
@@ -220,7 +203,6 @@ class AutoOrient:
 
     @staticmethod
     def _remove_duplicates(orients, tol_deg=5):
-        """Удаление похожих направлений"""
         tol = np.sin(np.radians(tol_deg))
         unique = []
         for o in orients:
@@ -234,7 +216,7 @@ class AutoOrient:
         return unique
 
     def _evaluate(self, orientation):
-        """Вычисляет bottom, overhang, contour для данной ориентации"""
+        # Вычисляет bottom, overhang, contour
         # Проекции вершин на ориентацию
         verts = self.mesh[:, 3:12].reshape(-1, 3, 3)
         proj = np.inner(verts, orientation)  # (N, 3)
@@ -265,7 +247,6 @@ class AutoOrient:
                     (self.height_offset + self.height_log * np.log(self.height_log_k * heights + 1)) *
                     overhang_faces[:, 12] * np.abs(inner * (inner < 0)) ** self.OV_H
                 )
-                # Plafond – не будем усложнять, опустим
             else:
                 inner = dot[overhang_mask] - self.ASCENT
                 overhang = 2 * np.sum(overhang_faces[:, 12] * np.abs(inner * (inner < 0)) ** 2)
@@ -277,7 +258,6 @@ class AutoOrient:
         contour_faces = self.mesh[med_proj < (total_min + self.FIRST_LAY_H)]
         if len(contour_faces) > 0:
             # Грубая оценка: сумма длин рёбер, лежащих в основании (требует сложной геометрии)
-            # Используем эвристику: периметр квадрата по площади bottom
             contour = 4 * np.sqrt(bottom)  # упрощённо, как в Tweaker
         else:
             contour = 0
@@ -285,7 +265,7 @@ class AutoOrient:
         return bottom, overhang, contour
 
     def _target_function(self, bottom, overhang, contour):
-        """Целевая функция unprintability (чем меньше, тем лучше)"""
+        # Целевая функция unprintability
         if self.min_volume:
             overhang /= 25  # для объёма
             return (self.TAR_A * (overhang + self.TAR_B) +
@@ -297,7 +277,7 @@ class AutoOrient:
                     (self.TAR_D + self.CONTOUR_F * contour + self.BOTTOM_F * bottom))
 
     def _euler(self, orientation):
-        """Вычисляет ось, угол и матрицу поворота, чтобы orientation стал вертикальным вниз"""
+        # Вычисляет ось, угол и матрицу поворота, чтобы orientation стал вертикальным вниз
         target = np.array([0, 0, -1])
         if np.allclose(orientation, target, atol=abs(self.VECTOR_TOL)):
             phi = 0
